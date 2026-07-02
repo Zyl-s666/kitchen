@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="小马厨房">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>小马老婆大人的专属厨房 💝</title>
+<style>
+/* ===== Reset & Base ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#f8a5c2;--pink-light:#fce4ec;--pink-dark:#e88da8;--rose:#f06292;
+  --warm-bg:#fff8f0;--text:#5d4037;--text-light:#8d6e63;
+  --white:#fff;--shadow:0 4px 20px rgba(0,0,0,0.08);
+  --radius:16px;--radius-sm:12px;
+  --nav-h:68px;--header-h:56px;
+}
+body{
+  font-family:'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+  background:var(--warm-bg);color:var(--text);min-height:100vh;
+  overflow-x:hidden;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+  padding-bottom:calc(var(--nav-h) + 20px);
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(248,165,194,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 85% 80%, rgba(240,98,146,0.04) 0%, transparent 50%);
+}
+
+/* ===== Top Bar ===== */
+.topbar{
+  position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid #fce4ec;padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:var(--header-h);
+}
+.topbar .logo{display:flex;align-items:center;gap:8px;}
+.topbar .logo .icon{font-size:26px;}
+.topbar .logo .title{
+  font-size:1em;font-weight:800;
+  background:linear-gradient(135deg,#e88da8,#f06292);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.topbar .status{font-size:0.78em;color:var(--text-light);display:flex;align-items:center;gap:5px;}
+.topbar .status .dot{width:8px;height:8px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ===== Page System ===== */
+.page{display:none;animation:fadeIn 0.3s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== Search & Cats ===== */
+.search-bar{margin:10px 16px;display:flex;gap:8px;align-items:center;}
+.search-bar .input-wrap{
+  flex:1;display:flex;align-items:center;background:var(--white);
+  border-radius:50px;padding:0 16px;box-shadow:var(--shadow);
+  transition:box-shadow 0.2s;
+}
+.search-bar .input-wrap:focus-within{box-shadow:0 0 0 3px var(--pink-light),var(--shadow);}
+.search-bar input{
+  flex:1;border:none;outline:none;padding:11px 0;font-size:0.93em;color:var(--text);background:transparent;
+}
+.search-bar input::placeholder{color:#c9a9b9;}
+
+.cats{
+  display:flex;gap:8px;padding:0 16px 4px;overflow-x:auto;scrollbar-width:none;flex-wrap:wrap;
+}
+.cats::-webkit-scrollbar{display:none}
+.cats button{
+  flex-shrink:0;border:2px solid var(--pink);background:transparent;
+  color:var(--pink-dark);padding:6px 14px;border-radius:50px;
+  cursor:pointer;font-size:0.82em;font-weight:600;transition:all 0.2s;white-space:nowrap;
+}
+.cats button:hover,.cats button.active{background:var(--pink);color:#fff;}
+
+/* ===== Menu Grid ===== */
+.menu-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));
+  gap:12px;padding:8px 14px 20px;
+}
+@media(min-width:500px){.menu-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;padding:8px 18px 20px;}}
+@media(min-width:900px){.menu-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}}
+
+.dish-card{
+  border-radius:var(--radius-sm);overflow:hidden;
+  box-shadow:var(--shadow);cursor:pointer;
+  transition:transform 0.25s,box-shadow 0.25s;position:relative;
+  background:var(--white);
+}
+.dish-card:active{transform:scale(0.96);}
+.dish-card .cover{
+  position:relative;width:100%;padding-top:72%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:64px;overflow:hidden;
+}
+.dish-card .cover .emoji{position:relative;z-index:1;transition:transform 0.35s;}
+.dish-card:hover .cover .emoji{transform:scale(1.12);}
+.dish-card .card-tag{
+  position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.88);
+  color:var(--rose);padding:3px 10px;border-radius:50px;font-size:0.7em;
+  font-weight:700;backdrop-filter:blur(4px);z-index:2;
+}
+.dish-card .card-qty-badge{
+  position:absolute;top:8px;left:8px;
+  background:var(--rose);color:#fff;
+  min-width:22px;height:22px;border-radius:11px;
+  font-size:0.7em;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 6px;z-index:2;
+  opacity:0;transform:scale(0.6);transition:all 0.25s;
+}
+.dish-card .card-qty-badge.show{opacity:1;transform:scale(1);}
+.dish-card .card-info{padding:10px 12px 12px;}
+.dish-card .card-info .name{font-size:0.93em;font-weight:700;margin-bottom:4px;}
+.dish-card .card-info .row2{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.dish-card .card-info .meta{font-size:0.7em;color:var(--text-light);}
+.dish-card .card-info .qty-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.dish-card .card-info .qty-ctrl button{
+  width:26px;height:26px;border-radius:50%;border:none;
+  font-size:1em;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.qty-ctrl .minus{background:#f0f0f0;color:var(--text);}
+.qty-ctrl .minus:hover{background:#ddd;}
+.qty-ctrl .plus{background:var(--pink);color:#fff;}
+.qty-ctrl .plus:hover{background:var(--rose);}
+.qty-ctrl .qty{font-weight:700;font-size:0.85em;min-width:16px;text-align:center;}
+
+/* ===== Cart Page ===== */
+.page-title{font-size:1.05em;font-weight:700;padding:8px 16px 4px;color:var(--text);}
+.cart-content{padding:4px 14px 30px;}
+.cart-empty{text-align:center;padding:50px 20px;color:var(--text-light);}
+.cart-empty .icon{font-size:56px;margin-bottom:8px;}
+.cart-empty p{font-size:0.95em;margin-bottom:4px;}
+.cart-empty .go-menu{
+  margin-top:14px;display:inline-block;background:var(--pink);color:#fff;
+  border:none;padding:10px 24px;border-radius:50px;font-size:0.9em;cursor:pointer;font-weight:600;
+}
+
+.cart-list{display:flex;flex-direction:column;gap:10px;margin-bottom:10px;}
+.cart-item{
+  display:flex;align-items:center;gap:10px;background:var(--white);
+  border-radius:var(--radius-sm);padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.cart-item .ci-icon{
+  width:52px;height:52px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;
+}
+.cart-item .ci-info{flex:1;min-width:0;}
+.cart-item .ci-info .name{font-weight:700;font-size:0.92em;}
+.cart-item .ci-info .meta{font-size:0.75em;color:var(--text-light);}
+.cart-item .ci-ctrl{display:flex;align-items:center;gap:8px;}
+.cart-item .ci-ctrl button{
+  width:28px;height:28px;border-radius:50%;border:none;
+  font-size:1em;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.cart-item .ci-ctrl .minus{background:#f0f0f0;color:var(--text);}
+.cart-item .ci-ctrl .plus{background:var(--pink);color:#fff;}
+.cart-item .ci-ctrl .qty{font-weight:700;min-width:20px;text-align:center;font-size:0.9em;}
+
+.submit-btn{
+  width:100%;background:linear-gradient(135deg,var(--pink-dark),var(--rose));
+  color:#fff;border:none;padding:14px;border-radius:50px;
+  font-size:1em;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 16px rgba(240,98,146,0.3);transition:all 0.15s;
+}
+.submit-btn:active{transform:scale(0.96);}
+
+/* ===== Cart Footer Bar ===== */
+.cart-footer{
+  position:fixed;bottom:var(--nav-h);left:0;right:0;z-index:50;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(14px);
+  padding:12px 20px;border-top:1px solid #fce4ec;
+  display:flex;align-items:center;justify-content:space-between;
+  transform:translateY(100%);transition:transform 0.3s ease;
+}
+.cart-footer.show{transform:translateY(0);}
+.cart-footer .summary{font-size:0.88em;color:var(--text-light);}
+.cart-footer .summary strong{color:var(--rose);font-size:1.15em;}
+.cart-footer .go-cart{
+  background:linear-gradient(135deg,var(--pink-dark),var(--rose));
+  color:#fff;border:none;padding:10px 26px;border-radius:50px;
+  font-size:0.93em;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 14px rgba(240,98,146,0.3);
+}
+
+/* ===== Orders Page ===== */
+.orders-page{padding:4px 14px 30px;}
+.orders-empty{text-align:center;padding:50px 20px;color:var(--text-light);}
+.orders-empty .icon{font-size:56px;margin-bottom:8px;}
+.orders-empty .go-menu{
+  margin-top:14px;display:inline-block;background:var(--pink);color:#fff;
+  border:none;padding:10px 24px;border-radius:50px;font-size:0.9em;cursor:pointer;font-weight:600;
+}
+
+.order-card{
+  background:var(--white);border-radius:var(--radius-sm);box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  padding:14px 16px;margin-bottom:10px;
+}
+.order-card .oh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.order-card .oh .oid{font-weight:700;font-size:0.88em;}
+.order-card .oh .ostatus{font-size:0.78em;font-weight:600;padding:3px 10px;border-radius:50px;}
+.order-card .oh .ostatus.cooking{background:#fff3e0;color:#e67e22;}
+.order-card .oh .ostatus.done{background:#e8f5e9;color:#388e3c;}
+.order-card .oitems{font-size:0.82em;color:var(--text-light);line-height:1.7;border-bottom:1px solid #faf0f3;padding-bottom:6px;margin-bottom:6px;}
+.order-card .otime{font-size:0.75em;color:var(--text-light);}
+
+/* ===== Bottom Nav ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(14px);
+  border-top:1px solid #fce4ec;height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-around;
+}
+.bottom-nav button{
+  flex:1;height:100%;border:none;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;cursor:pointer;color:#bcaaa4;font-size:0.68em;
+  transition:color 0.2s;position:relative;
+}
+.bottom-nav button .ni{font-size:23px;position:relative;}
+.bottom-nav button.active{color:var(--rose);}
+.bottom-nav .badge{
+  position:absolute;top:-7px;right:-14px;
+  background:var(--rose);color:#fff;font-size:0.68em;font-weight:700;
+  min-width:18px;height:18px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px;line-height:1;
+}
+
+/* ===== Modal ===== */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+  justify-content:center;align-items:flex-end;
+}
+.overlay.show{display:flex;}
+.modal{
+  background:var(--white);border-radius:20px 20px 0 0;
+  width:100%;max-width:520px;max-height:85vh;overflow-y:auto;
+  animation:slideUp 0.35s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal .handle{width:36px;height:5px;background:#e0e0e0;border-radius:3px;margin:10px auto 0;}
+
+.modal-hero{
+  position:relative;height:200px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:88px;
+}
+.modal-hero .close-btn{
+  position:absolute;top:10px;right:12px;width:32px;height:32px;
+  border-radius:50%;border:none;background:rgba(255,255,255,0.75);
+  font-size:1em;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;color:var(--text);backdrop-filter:blur(4px);z-index:2;
+}
+.modal-body{padding:16px 20px 24px;}
+.modal-body h2{font-size:1.3em;margin-bottom:4px;}
+.modal-body .md{font-size:0.85em;color:var(--text-light);margin-bottom:4px;line-height:1.5;}
+.modal-body .mm{font-size:0.78em;color:var(--text-light);margin-bottom:12px;display:flex;gap:14px;}
+
+.modal-body section{margin-bottom:14px;}
+.modal-body section h4{color:var(--rose);font-size:0.92em;margin-bottom:8px;padding-bottom:4px;border-bottom:2px dashed var(--pink-light);display:flex;align-items:center;gap:6px;}
+.modal-body .ings{display:flex;flex-wrap:wrap;gap:6px;}
+.modal-body .ings span{background:var(--pink-light);color:var(--pink-dark);padding:5px 12px;border-radius:50px;font-size:0.78em;font-weight:600;}
+.modal-body .steps{list-style:none;counter-reset:step;}
+.modal-body .steps li{counter-increment:step;display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #faf0f3;font-size:0.82em;line-height:1.65;}
+.modal-body .steps li::before{content:counter(step);flex-shrink:0;width:23px;height:23px;background:var(--pink);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78em;}
+.modal-body .tip{background:#fff9e6;border-left:4px solid #ffcc02;padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8em;color:#8d6e00;line-height:1.6;}
+
+.modal-body .add-big{
+  width:100%;background:linear-gradient(135deg,var(--pink-dark),var(--rose));
+  color:#fff;border:none;padding:14px;border-radius:50px;
+  font-size:1em;font-weight:700;cursor:pointer;margin-top:6px;transition:all 0.15s;
+  box-shadow:0 4px 14px rgba(240,98,146,0.25);
+}
+.modal-body .add-big:active{transform:scale(0.96);}
+.modal-body .qty-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:6px;}
+.modal-body .qty-row button{
+  width:36px;height:36px;border-radius:50%;border:none;font-size:1.2em;
+  font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.modal-body .qty-row .mqty{font-weight:700;font-size:1.1em;}
+
+/* ===== Confirm Modal ===== */
+.confirm-modal{padding:0 20px 24px;}
+.confirm-modal .handle{margin:10px auto 6px;}
+.confirm-modal h3{text-align:center;font-size:1.1em;margin-bottom:10px;}
+.confirm-list{max-height:200px;overflow-y:auto;margin-bottom:10px;}
+.confirm-list .cl{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.88em;border-bottom:1px solid #faf0f3;}
+.confirm-modal .confirm-btn{
+  width:100%;background:linear-gradient(135deg,#f06292,#e91e63);
+  color:#fff;border:none;padding:14px;border-radius:50px;
+  font-size:1em;font-weight:700;cursor:pointer;margin-top:4px;
+  box-shadow:0 4px 16px rgba(233,30,99,0.28);transition:all 0.15s;
+}
+.confirm-modal .confirm-btn:active{transform:scale(0.96);}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-24px);
+  background:rgba(0,0,0,0.78);color:#fff;padding:10px 22px;
+  border-radius:50px;font-size:0.88em;z-index:500;
+  opacity:0;transition:all 0.3s ease;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== Confetti ===== */
+.confetti{
+  position:fixed;pointer-events:none;z-index:600;
+  font-size:30px;animation:confettiFall 1.6s ease-out forwards;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(0) rotate(0) scale(1);opacity:1}
+  100%{transform:translateY(100vh) rotate(680deg) scale(0.25);opacity:0}
+}
+
+@media(max-width:400px){
+  .menu-grid{grid-template-columns:repeat(2,1fr);gap:10px;padding:6px 8px 16px;}
+  .dish-card .card-info{padding:8px 10px 10px;}
+  .dish-card .card-info .name{font-size:0.85em;}
+  .dish-card .cover{font-size:48px;padding-top:70%;}
+  .modal-hero{height:160px;font-size:64px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo"><span class="icon">👩‍🍳</span><span class="title">小马老婆大人的专属厨房</span></div>
+  <div class="status"><span class="dot"></span>营业中</div>
+</div>
+
+<!-- PAGE: MENU -->
+<div class="page active" id="page-menu">
+  <div class="search-bar">
+    <div class="input-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" placeholder="搜搜想吃什么菜…">
+    </div>
+  </div>
+  <div class="cats" id="catBtns">
+    <button class="active" data-cat="all">全部</button>
+    <button data-cat="荤菜">🥩 荤菜</button>
+    <button data-cat="素菜">🥬 素菜</button>
+    <button data-cat="海鲜">🐟 海鲜</button>
+    <button data-cat="主食">🍚 主食</button>
+    <button data-cat="汤品">🍲 汤品</button>
+  </div>
+  <div class="menu-grid" id="menuGrid"></div>
+</div>
+
+<!-- PAGE: CART -->
+<div class="page" id="page-cart">
+  <div class="page-title">🛒 我的菜单计划</div>
+  <div class="cart-content" id="cartContent"></div>
+</div>
+
+<!-- PAGE: ORDERS -->
+<div class="page" id="page-orders">
+  <div class="page-title">📋 下单记录</div>
+  <div class="orders-page" id="ordersContent"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="active" data-page="menu"><span class="ni">📋</span><span>菜单</span></button>
+  <button data-page="cart">
+    <span class="ni">🛒<span class="badge" id="cartBadge" style="display:none">0</span></span>
+    <span>计划</span>
+  </button>
+  <button data-page="orders"><span class="ni">📦</span><span>记录</span></button>
+</div>
+
+<!-- CART FOOTER -->
+<div class="cart-footer" id="cartFooter">
+  <div class="summary">已选 <strong id="footerCount">0</strong> 道菜</div>
+  <button class="go-cart" onclick="switchPage('cart')">查看计划 →</button>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"><div class="modal" id="modalContent"></div></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== 40 道家常菜 ====================
+const recipes = [
+  // ----- 荤菜 (15道) -----
+  {id:1,name:'红烧肉',emoji:'🍖',c1:'#fde4cc',c2:'#f5c498',cat:'荤菜',time:'约60分钟',diff:'⭐⭐',desc:'色泽红亮、肥而不腻的经典硬菜，软糯入味，一口下去满满的幸福感！',ingredients:['五花肉500g','冰糖30g','生抽2汤匙','老抽1汤匙','料酒2汤匙','姜片5片','葱段适量','八角2个','桂皮1小块','香叶2片','盐适量','开水适量'],steps:['五花肉切成3cm见方的块，冷水下锅焯水，水开撇去浮沫捞出洗净。','锅中放少许油，加冰糖小火炒至融化变成琥珀色（糖色）。','下五花肉块翻炒上色，加姜片、葱段、八角、桂皮、香叶炒香。','淋入料酒、生抽、老抽翻炒均匀，加入没过肉的开水。','大火烧开后转小火，盖盖炖45-50分钟至肉软烂。','开大火收汁，汤汁浓稠时加盐调味，翻炒均匀出锅。'],tip:'炒糖色要用小火，颜色变琥珀色立刻放肉，炒过了发苦。一定要加开水，冷水会让肉收缩变硬。'},
+  {id:2,name:'宫保鸡丁',emoji:'🍗',c1:'#fde0d0',c2:'#f5c0a8',cat:'荤菜',time:'约25分钟',diff:'⭐⭐',desc:'香辣酸甜、鸡肉嫩滑、花生酥脆，下饭神菜，每次做都要多煮两碗米！',ingredients:['鸡胸肉300g','花生米50g','干辣椒6个','花椒1小撮','大葱1根','姜蒜末各适量','生抽1汤匙','醋1汤匙','白糖1汤匙','淀粉1茶匙','料酒1汤匙','盐适量'],steps:['鸡胸肉切丁，加料酒、盐、淀粉抓匀腌制15分钟。','花生米小火炒至微黄酥脆盛出。','调碗汁：生抽、醋、白糖、淀粉、水混合搅匀。','锅多放油，五成热下鸡丁滑炒至变色盛出。','留底油，小火煸香花椒干辣椒，放姜蒜末葱段炒香。','倒鸡丁翻炒，淋碗汁快速翻匀，汤汁变浓加花生米翻匀出锅。'],tip:'鸡丁腌制时加点水抓匀更嫩。花生米最后放才酥脆。碗汁提前调好，一气呵成。'},
+  {id:3,name:'鱼香肉丝',emoji:'🥢',c1:'#fde8d8',c2:'#f5ccb0',cat:'荤菜',time:'约25分钟',diff:'⭐⭐',desc:'没有鱼的"鱼香"，酸甜微辣层次丰富，肉丝嫩滑配菜爽脆，米饭杀手！',ingredients:['猪里脊肉250g','木耳适量（泡发）','胡萝卜半根','青椒1个','郫县豆瓣酱1汤匙','姜蒜末各适量','生抽1汤匙','醋1.5汤匙','白糖1.5汤匙','淀粉1茶匙','料酒1汤匙','盐少许'],steps:['里脊肉切丝，加料酒、盐、淀粉抓匀腌制。木耳胡萝卜青椒切丝。','调鱼香汁：生抽、醋、白糖、淀粉、少许水混匀。','锅多油，四成热下肉丝滑炒至变白盛出。','留底油，小火炒香豆瓣酱出红油，放姜蒜末炒香。','放胡萝卜丝木耳丝翻炒1分钟，加青椒丝。','倒回肉丝淋鱼香汁大火快速翻炒均匀，汁变浓亮出锅。'],tip:'糖醋比例约1:1。大火快炒是肉丝嫩滑的关键，全程不超过2分钟。'},
+  {id:4,name:'回锅肉',emoji:'🥩',c1:'#fddcc8',c2:'#f0b898',cat:'荤菜',time:'约40分钟',diff:'⭐⭐',desc:'四川第一名菜！肥瘦相间的五花肉配上蒜苗豆瓣酱，香辣下饭越嚼越香。',ingredients:['五花肉300g','蒜苗3根','青椒1个','郫县豆瓣酱1.5汤匙','甜面酱半汤匙','豆豉少许','姜片3片','料酒1汤匙','生抽半汤匙','白糖少许'],steps:['五花肉整块冷水下锅加姜片料酒，煮开转中火煮20分钟至筷子能扎透。','捞出晾凉切薄片（越薄越好）。蒜苗斜刀切段，青椒切块。','锅放极少油，下五花肉片中火煸至肉片卷曲出油（灯盏窝状）。','肉推到一边，用锅油炒香豆瓣酱出红油，加豆豉甜面酱翻炒。','加少许白糖生抽，和肉一起翻炒均匀。','放蒜苗段青椒翻炒至断生（约1分钟），出锅。'],tip:'肉煮好放凉再切更容易切薄。煸到肉片微卷呈"灯盏窝"状是标准。蒜苗不要久炒。'},
+  {id:5,name:'糖醋里脊',emoji:'🍯',c1:'#fef3c7',c2:'#f9e090',cat:'荤菜',time:'约30分钟',diff:'⭐⭐⭐',desc:'外酥里嫩、酸甜可口，金黄酥脆的外壳裹着亮晶晶的糖醋汁，大人小孩都爱吃！',ingredients:['猪里脊肉300g','鸡蛋1个','面粉3汤匙','淀粉3汤匙','番茄酱3汤匙','白糖2汤匙','白醋1.5汤匙','生抽半汤匙','姜蒜末各适量','料酒1汤匙','盐适量','白芝麻适量'],steps:['里脊肉切手指粗条，加料酒盐腌制15分钟。','调面糊：鸡蛋打散加面粉淀粉搅拌成浓稠糊状。','肉条裹面糊，六成热油温逐条下锅炸至浅黄捞出。','油温升高至八成热，复炸30秒至金黄酥脆捞出。','调糖醋汁：番茄酱白糖白醋生抽加少许水混合。','锅少油爆香姜蒜末，倒糖醋汁煮至冒泡浓稠，倒肉条快速翻匀，撒芝麻出锅。'],tip:'复炸是关键——第一次炸熟，第二次高温炸酥。糖醋汁煮到冒大泡泡再放肉，裹上即出锅。'},
+  {id:6,name:'可乐鸡翅',emoji:'🍗',c1:'#e8d5c4',c2:'#c9a88c',cat:'荤菜',time:'约30分钟',diff:'⭐',desc:'零失败的人气料理！可乐焦糖让鸡翅色泽油亮、甜咸入味，新手也能做出大厨范儿。',ingredients:['鸡中翅10个','可乐1罐（330ml）','生抽2汤匙','老抽半汤匙','姜片5片','料酒1汤匙','盐少许','白芝麻适量'],steps:['鸡翅两面各划两刀，冷水下锅加姜片料酒焯水捞出洗净。','锅少油，鸡翅皮朝下煎至两面金黄。','加生抽老抽翻炒上色。','倒可乐没过鸡翅，大火煮开。','转中小火煮15-20分钟至汤汁减少。','大火收汁至浓稠挂在鸡翅上，撒白芝麻出锅。'],tip:'一定要用含糖可乐，无糖的做不出焦糖效果。收汁时不停翻动让每个鸡翅都裹满酱汁。'},
+  {id:7,name:'糖醋排骨',emoji:'🦴',c1:'#fde4c8',c2:'#f5c898',cat:'荤菜',time:'约45分钟',diff:'⭐⭐',desc:'酸甜浓郁、骨香肉嫩，每根排骨都裹满亮晶晶的糖醋汁，吃完还要舔手指！',ingredients:['猪小排500g','冰糖40g','陈醋3汤匙','生抽2汤匙','老抽半汤匙','料酒2汤匙','姜片5片','八角1个','盐少许','白芝麻适量'],steps:['排骨冷水下锅加姜片料酒焯水，撇浮沫捞出洗净。','锅少油加冰糖小火炒至融化成琥珀色。','下排骨翻炒上色，加姜片八角。','加生抽老抽料酒，加没过排骨的开水。','大火烧开转小火炖30分钟至排骨软烂。','加陈醋盐调味，大火收汁至浓稠挂在排骨上，撒芝麻出锅。'],tip:'醋分两次加——炖时加一半入味，出锅前加另一半提香。收汁时要多翻动防糊。'},
+  {id:8,name:'葱爆羊肉',emoji:'🐑',c1:'#fde8d8',c2:'#f0c8a8',cat:'荤菜',time:'约15分钟',diff:'⭐⭐',desc:'大葱甜香配上羊肉鲜嫩，大火爆炒几十秒就出锅，简单快手又下饭！',ingredients:['羊肉卷/羊腿肉300g','大葱2根','姜丝适量','蒜片适量','生抽1.5汤匙','老抽半汤匙','料酒1汤匙','孜然粉1茶匙','盐适量','白胡椒粉适量'],steps:['羊肉切薄片（用羊肉卷更方便），加料酒白胡椒粉少许生抽腌制10分钟。','大葱斜刀切段。','锅多油大火烧到冒烟，下羊肉快速滑炒至变色立即盛出（约30秒）。','留底油，放姜丝蒜片葱段大火翻炒至葱变软出香。','倒回羊肉，加生抽老抽盐孜然粉。','大火翻炒均匀约20秒，葱香和羊肉融合出锅。'],tip:'全程大火！炒羊肉要快，变色就出锅，久炒就老了。撒孜然粉是点睛之笔。'},
+  {id:9,name:'辣子鸡',emoji:'🌶️',c1:'#fdd8d0',c2:'#f0a898',cat:'荤菜',time:'约30分钟',diff:'⭐⭐⭐',desc:'满盘红辣椒中找鸡块，麻辣焦香，越吃越过瘾的重庆江湖菜！',ingredients:['鸡腿肉400g','干辣椒段1大碗','花椒2汤匙','姜蒜片各适量','料酒1汤匙','生抽1汤匙','盐适量','白糖少许','白芝麻适量','淀粉适量'],steps:['鸡腿肉切小丁，加料酒生抽盐淀粉腌制20分钟。','锅多油，七成热下鸡丁炸至表面金黄微焦捞出控油。','留底油，小火爆香花椒干辣椒段（辣椒量要多）。','放姜蒜片炒香，倒回鸡丁。','大火翻炒，加少许白糖提鲜，炒至辣椒酥脆。','撒白芝麻翻匀出锅。'],tip:'干辣椒要多到能把鸡丁"淹没"。辣椒先用温水泡一下不容易炒糊。鸡丁炸两次更酥。'},
+  {id:10,name:'小炒肉',emoji:'🥘',c1:'#fde8d4',c2:'#f5c498',cat:'荤菜',time:'约15分钟',diff:'⭐',desc:'湖南名菜！五花肉煸到微焦配上青椒蒜瓣，香辣下饭五分钟就见底。',ingredients:['五花肉250g','青椒3个','大蒜4瓣','豆豉少许','生抽1.5汤匙','老抽半汤匙','料酒1汤匙','盐适量','白糖少许'],steps:['五花肉切薄片，青椒斜切段，蒜拍碎。','锅不放油，下五花肉片中火煸炒至出油微焦。','放蒜瓣豆豉炒香。','加料酒生抽老抽翻炒上色。','放青椒段大火翻炒至断生。','加少许盐白糖翻匀出锅。'],tip:'五花肉要切得够薄。煸的时候把油逼出来，肉片微焦才香。全程大火快炒保持镬气。'},
+  {id:11,name:'京酱肉丝',emoji:'🥢',c1:'#fde8d8',c2:'#f5ceb0',cat:'荤菜',time:'约20分钟',diff:'⭐⭐',desc:'北京名菜！酱香浓郁的肉丝配上豆腐皮葱丝黄瓜丝，卷着吃别有风味。',ingredients:['猪里脊肉300g','甜面酱2汤匙','豆腐皮3张','大葱1根','黄瓜半根','料酒1汤匙','淀粉1茶匙','白糖1茶匙','生抽半汤匙'],steps:['里脊肉切丝，加料酒淀粉抓匀腌制。','大葱黄瓜切细丝，豆腐皮切方块焯水。','锅多油，四成热下肉丝滑炒至变白盛出。','留底油小火炒香甜面酱，加白糖生抽和少许水调匀。','倒回肉丝翻炒均匀裹满酱汁。','装盘，配葱丝黄瓜丝豆腐皮一起上桌。'],tip:'甜面酱要用小火炒出酱香但别炒糊。吃的时候用豆腐皮卷入肉丝和配菜，一口一个。'},
+  {id:12,name:'蒜苗炒腊肉',emoji:'🥓',c1:'#fddcc8',c2:'#f0b888',cat:'荤菜',time:'约15分钟',diff:'⭐',desc:'腊肉的烟熏咸香配上蒜苗的清甜脆嫩，冬天最下饭的家常小炒！',ingredients:['腊肉200g','蒜苗4根','干辣椒3个','姜片3片','料酒1汤匙','生抽少许','白糖少许'],steps:['腊肉用温水洗净，冷水下锅煮15分钟去咸味，捞出切薄片。','蒜苗斜刀切段，干辣椒切段。','锅少油，下腊肉片中火煸炒至出油透明。','放姜片干辣椒炒香。','加料酒少许生抽和白糖翻炒。','放蒜苗段大火翻炒至断生（约1分钟），出锅。'],tip:'腊肉要先煮一下去咸味，不然炒出来太咸。腊肉本身有咸味，生抽要少放。蒜苗不要久炒。'},
+  {id:13,name:'粉蒸肉',emoji:'🍖',c1:'#fde8d0',c2:'#f0c898',cat:'荤菜',time:'约70分钟',diff:'⭐⭐',desc:'软糯鲜香、入口即化，米粉裹着五花肉蒸到酥烂，是待客的硬菜！',ingredients:['五花肉400g','蒸肉米粉100g','红薯/土豆1个','生抽2汤匙','老抽半汤匙','料酒1汤匙','郫县豆瓣酱1汤匙','姜片5片','葱花适量'],steps:['五花肉切厚片，加生抽老抽料酒姜片和豆瓣酱腌制30分钟。','红薯/土豆切厚片铺在蒸碗底部。','腌好的肉片逐片裹上蒸肉米粉，码放在红薯上。','蒸锅水开后放入，大火蒸1小时至肉酥烂。','出锅倒扣在盘中，撒葱花即可。'],tip:'蒸肉米粉超市有卖，也可以用大米加八角花椒炒香后磨碎。蒸的时间一定要够才会入口即化。'},
+  {id:14,name:'白切鸡',emoji:'🐔',c1:'#fcf3e0',c2:'#f5e0b8',cat:'荤菜',time:'约40分钟',diff:'⭐⭐',desc:'广东经典！皮爽肉滑、原汁原味，蘸上姜葱油简直绝了，最能体现鸡肉本味。',ingredients:['三黄鸡1只（约1.5kg）','姜1大块','葱3根','沙姜粉/姜末适量','花生油适量','盐适量','冰水一大盆'],steps:['鸡处理干净。大锅水烧开加姜片葱结。','手提鸡头将鸡浸入开水中烫10秒提起，重复三次（定型）。','将鸡完全浸入水中，水开后关火盖盖焖25-30分钟。','取出鸡立即放入冰水中浸泡至完全冷却（皮才会爽脆）。','做蘸料：姜末沙姜粉加盐，浇滚烫花生油搅匀。','鸡斩块装盘，配姜葱油上桌。'],tip:'三浸三提是定型关键。冰水过凉是皮爽肉滑的秘诀。焖的时间根据鸡的大小调整，筷子扎大腿无血水即熟。'},
+  {id:15,name:'蚂蚁上树',emoji:'🍜',c1:'#fde8d4',c2:'#f5c898',cat:'荤菜',time:'约15分钟',diff:'⭐',desc:'粉丝吸满肉末酱汁，根根分明又入味，名字有趣味道更棒的经典家常菜！',ingredients:['红薯粉丝150g','猪肉末100g','郫县豆瓣酱1汤匙','生抽1汤匙','老抽半汤匙','姜蒜末各适量','葱花适量','料酒1汤匙','盐少许','高汤/水适量'],steps:['粉丝用温水泡软剪成段，沥干备用。','锅放油，下肉末炒散至变色。','加豆瓣酱炒出红油，放姜蒜末炒香。','加料酒生抽老抽翻炒。','加入适量高汤或水煮开。','放入粉丝，中火煮2-3分钟至粉丝吸饱汤汁，撒葱花出锅。'],tip:'粉丝不要泡太久，保留一些吸水空间。煮的时候汤汁稍多些，粉丝会吸很多汤。出锅趁热吃，凉了粉丝会坨。'},
+
+  // ----- 素菜 (13道) -----
+  {id:16,name:'蚝油生菜',emoji:'🥬',c1:'#e8f5e0',c2:'#c8e6c0',cat:'素菜',time:'约5分钟',diff:'⭐',desc:'最简单的快手素菜！生菜翠绿脆嫩，蚝油蒜末一浇，五分钟搞定一盘鲜。',ingredients:['生菜2颗','大蒜4瓣','蚝油1.5汤匙','生抽半汤匙','白糖少许','水淀粉适量'],steps:['生菜掰开洗净，蒜切末。','烧一锅水加少许盐和几滴油，水开焯生菜10秒捞出摆盘。','锅少油，小火炒香蒜末至微黄。','加蚝油生抽白糖和少许水搅匀煮开。','淋水淀粉勾薄芡，汤汁变浓。','将蒜蓉蚝油汁浇在生菜上即可。'],tip:'生菜焯水时间要短，10秒就够，保持脆嫩翠绿。水中加油盐可以保持生菜颜色。上桌尽快吃。'},
+  {id:17,name:'手撕包菜',emoji:'🥬',c1:'#eaf5e2',c2:'#d0e8c0',cat:'素菜',time:'约10分钟',diff:'⭐',desc:'手撕的包菜比刀切的好吃十倍！大火爆炒酸辣脆爽，素菜里的米饭杀手。',ingredients:['包菜半颗','干辣椒5个','花椒少许','蒜片适量','生抽1汤匙','陈醋1.5汤匙','盐适量','白糖少许'],steps:['包菜用手撕成小片（不要用刀切），洗净沥干水分。','锅多油大火烧热，爆香花椒干辣椒和蒜片。','倒入包菜大火快速翻炒。','炒至包菜变软变透明（约2分钟）。','沿锅边淋入生抽陈醋，加盐和白糖。','大火翻炒均匀，包菜断生即出锅。'],tip:'手撕的包菜断面不规则更容易入味。全程大火快炒保持脆感。醋沿锅边淋入激发出香味。'},
+  {id:18,name:'红烧茄子',emoji:'🍆',c1:'#ede0f5',c2:'#d4c0e8',cat:'素菜',time:'约20分钟',diff:'⭐⭐',desc:'茄子软糯吸满酱汁，咸甜适口入口即化，素菜也能吃出肉的感觉！',ingredients:['茄子2根','大蒜3瓣','生抽1.5汤匙','老抽半汤匙','蚝油1汤匙','白糖1茶匙','淀粉1茶匙','盐适量','葱花适量'],steps:['茄子切滚刀块，撒少许盐腌10分钟挤去水分。','调碗汁：生抽老抽蚝油白糖淀粉加水调匀。','锅多油，下茄子煎至表面金黄变软（或炸）。','留底油炒香蒜末。','倒碗汁煮至冒泡浓稠。','倒回茄子快速翻炒均匀裹满酱汁，撒葱花出锅。'],tip:'茄子先用盐腌挤水可以减少吸油。裹一层薄淀粉再煎也能减少吸油。碗汁提前调好一气呵成。'},
+  {id:19,name:'醋溜白菜',emoji:'🥬',c1:'#f5f8e8',c2:'#e8f0d0',cat:'素菜',time:'约10分钟',diff:'⭐',desc:'酸爽开胃、清脆可口，最简单的白菜做出最下饭的味道，一盘能配三碗米饭。',ingredients:['大白菜帮300g','干辣椒4个','花椒少许','生抽1汤匙','陈醋2汤匙','白糖半汤匙','盐适量','蒜片适量','水淀粉适量'],steps:['白菜帮斜刀片成薄片（更容易入味）。','锅多油大火烧热，爆香花椒干辣椒蒜片。','倒入白菜帮大火快速翻炒。','炒至白菜变透明（约2分钟）。','沿锅边淋入陈醋生抽，加白糖盐。','淋水淀粉勾薄芡翻匀出锅。'],tip:'一定要用白菜帮，叶子不适合醋溜。斜刀片薄是关键，更容易入味和炒熟。醋沿锅边淋入。'},
+  {id:20,name:'家常豆腐',emoji:'🧈',c1:'#fde8d4',c2:'#f5c898',cat:'素菜',time:'约15分钟',diff:'⭐',desc:'豆腐煎到两面金黄再烧，外酥里嫩吸满汤汁，比肉还好吃的家常豆腐！',ingredients:['老豆腐1块','青椒1个','红椒半个','木耳适量','郫县豆瓣酱1汤匙','生抽1汤匙','蚝油1汤匙','姜蒜片各适量','白糖少许','水淀粉适量'],steps:['豆腐切三角厚片，用厨房纸吸干表面水分。','锅多油，下豆腐片煎至两面金黄盛出。','留底油，炒香豆瓣酱出红油，放姜蒜片炒香。','放入青红椒木耳翻炒。','加入适量水、生抽蚝油白糖煮开。','放入煎好的豆腐煮2分钟入味，淋水淀粉勾芡出锅。'],tip:'豆腐要用老豆腐，嫩豆腐煎的时候容易碎。煎之前吸干水分防溅油。煎到两面金黄才够香。'},
+  {id:21,name:'干煸豆角',emoji:'🫘',c1:'#e8f5e0',c2:'#d0e8c0',cat:'素菜',time:'约20分钟',diff:'⭐⭐',desc:'豆角煸到表皮微焦起皱，配上肉末干辣椒，咸香微辣，比肉还好吃！',ingredients:['四季豆300g','猪肉末80g','干辣椒5个','花椒1小撮','姜蒜末各适量','生抽1汤匙','料酒半汤匙','盐适量','白糖少许'],steps:['四季豆去筋掰成段，洗净后彻底沥干（一定要干！）。','锅多油，六七成热下豆角炸至表面起皱微焦捞出控油（约2分钟）。','留底油，下肉末炒散至变色出油。','放干辣椒花椒姜蒜末炒香。','倒炸好的豆角，加生抽料酒盐白糖。','大火翻炒均匀让每根豆角裹上味道出锅。'],tip:'四季豆一定要彻底做熟，生豆角有毒！不喜欢油炸可以多放油慢慢煸到起皱。'},
+  {id:22,name:'地三鲜',emoji:'🍆',c1:'#ede0f5',c2:'#d4c0e8',cat:'素菜',time:'约25分钟',diff:'⭐⭐',desc:'东北名菜！茄子土豆青椒的完美组合，三样普通食材做出不普通的鲜香滋味。',ingredients:['茄子1根','土豆1个','青椒1个','大蒜3瓣','生抽1.5汤匙','老抽半汤匙','蚝油1汤匙','白糖1茶匙','淀粉1茶匙','盐适量'],steps:['茄子土豆青椒切滚刀块。','调碗汁：生抽老抽蚝油白糖淀粉加水调匀。','锅多油分别将土豆茄子炸至表面金黄微焦捞出控油。','青椒过油10秒捞出。','留底油炒香蒜末，倒所有食材淋碗汁大火快炒。','每块裹上酱汁出锅。'],tip:'茄子裹一层薄淀粉再炸能减少吸油。碗汁提前调好，炒的时候一气呵成保持外酥里嫩。'},
+  {id:23,name:'青椒炒鸡蛋',emoji:'🫑',c1:'#f0f8e8',c2:'#d8f0c8',cat:'素菜',time:'约8分钟',diff:'⭐',desc:'青椒的清香配上鸡蛋的嫩滑，五分钟搞定的快手菜，简单却让人停不下筷子。',ingredients:['青椒3个','鸡蛋3个','蒜片适量','生抽半汤匙','盐适量'],steps:['青椒去籽切丝或切块，鸡蛋打散加盐搅匀。','锅多油大火烧热，倒蛋液快速划散，刚凝固就盛出。','留底油，炒香蒜片。','放青椒丝大火翻炒1-2分钟至断生。','倒回鸡蛋，加生抽盐翻匀出锅。'],tip:'鸡蛋炒到刚凝固就好，回锅还会继续熟。青椒不要炒太久，保持脆感和翠绿色。'},
+  {id:24,name:'凉拌黄瓜',emoji:'🥒',c1:'#f0f8e8',c2:'#e0f0d0',cat:'素菜',time:'约10分钟',diff:'⭐',desc:'夏天必做的凉菜！黄瓜拍碎拌上蒜泥酱醋，清脆爽口、开胃解腻。',ingredients:['黄瓜2根','大蒜4瓣','生抽1汤匙','陈醋2汤匙','白糖半汤匙','盐适量','香油1茶匙','辣椒油适量（可选）','香菜适量'],steps:['黄瓜洗净用刀拍裂（不要切），掰成段。','蒜捣成蒜泥（或切碎末）。','调汁：蒜泥加生抽陈醋白糖盐香油辣椒油搅匀。','黄瓜放入大碗，倒入调好的汁。','拌匀后静置5分钟入味。','装盘撒香菜，冷藏后更好吃。'],tip:'拍黄瓜比切的好吃！拍裂的黄瓜断面粗糙更容易入味。拌好后腌5分钟再吃味道最好。'},
+  {id:25,name:'番茄炒蛋',emoji:'🍅',c1:'#fde8e0',c2:'#f5c8b8',cat:'素菜',time:'约10分钟',diff:'⭐',desc:'国民第一家常菜！酸甜多汁的番茄配上嫩滑鸡蛋，简单却让人百吃不厌。',ingredients:['鸡蛋3个','番茄2个（熟透的）','葱花适量','白糖1茶匙','盐适量','水淀粉少许'],steps:['番茄顶部划十字，开水烫一下去皮切小块。鸡蛋打散加盐搅匀。','锅多油烧热，倒蛋液快速划散，刚凝固就盛出。','留底油，倒番茄块中火翻炒，用铲子压一压出汁。','加白糖炒至番茄软烂出汤汁。','倒回鸡蛋翻匀让鸡蛋裹满番茄汁，加盐调味。','撒葱花，喜欢浓稠淋少许水淀粉勾芡出锅。'],tip:'番茄一定要选熟透发红的，炒出来的汁才够酸甜浓郁。鸡蛋刚凝固就盛出，回锅还会继续熟。'},
+  {id:26,name:'麻婆豆腐',emoji:'🧈',c1:'#fde8e0',c2:'#f5c8b0',cat:'素菜',time:'约15分钟',diff:'⭐⭐',desc:'麻辣鲜香嫩，一勺豆腐能下半碗饭！麻、辣、烫、鲜、香、酥六味俱全。',ingredients:['嫩豆腐1块（约400g）','猪肉末80g','郫县豆瓣酱1.5汤匙','豆豉少许','辣椒粉1茶匙','花椒粉1茶匙','姜蒜末各适量','生抽1汤匙','水淀粉适量','葱花适量','盐少许'],steps:['豆腐切2cm方块，放入加盐开水中焯烫2分钟沥干。','锅放油，下肉末炒散至变色出油，加豆瓣酱小火炒出红油。','放姜蒜末豆豉辣椒粉炒香。','加适量清水或高汤煮开，放豆腐块轻轻推动。','中火煮3-5分钟入味，加生抽盐调味。','分两次淋水淀粉勾芡，汤汁浓稠后撒花椒粉葱花出锅。'],tip:'豆腐焯水加盐可去豆腥味、不易碎。最后撒的花椒粉是灵魂！勾芡分两次，第一次薄芡第二次收浓。'},
+  {id:27,name:'酸辣土豆丝',emoji:'🥔',c1:'#fef8e0',c2:'#f8e8b0',cat:'素菜',time:'约15分钟',diff:'⭐',desc:'清脆爽口、酸辣开胃，最考验刀工和火候的家常菜，简单却见功力！',ingredients:['土豆2个','干辣椒4个','花椒少许','姜丝适量','蒜片适量','白醋2汤匙','盐适量','葱花适量'],steps:['土豆去皮切细丝（越细越均匀越好），放清水中浸泡去淀粉。','换水2-3次至水清澈，沥干。','锅多油，小火炸香花椒后捞出花椒粒。','放干辣椒段姜丝蒜片爆香。','转大火，倒土豆丝快速翻炒保持脆感。','炒至变透明（约2-3分钟），沿锅边淋白醋加盐翻匀撒葱花出锅。'],tip:'土豆丝一定要泡水去淀粉才会脆！醋沿锅边淋入激发出香味。全程大火快炒不超3分钟。'},
+  {id:28,name:'蒜蓉西兰花',emoji:'🥦',c1:'#e8f5e0',c2:'#d0e8c0',cat:'素菜',time:'约10分钟',diff:'⭐',desc:'翠绿爽口的健康素菜，蒜香浓郁，做法简单又快，餐桌上的颜值担当！',ingredients:['西兰花1颗','大蒜5瓣','生抽1汤匙','蚝油1汤匙','盐适量','水淀粉少许'],steps:['西兰花掰小朵，淡盐水浸泡10分钟清洗。','烧水加盐和几滴油，水开焯西兰花1分钟捞出过凉水沥干。','锅放油小火炒香一半蒜末至微黄。','放西兰花大火翻炒1分钟。','加生抽蚝油盐调味。','淋水淀粉勾薄芡，撒剩余生蒜末翻匀出锅。'],tip:'焯水加盐和油保持翠绿。蒜末分两次——炒过的出蒜油香，生蒜末留清香，层次感更好。'},
+
+  // ----- 海鲜 (4道) -----
+  {id:29,name:'香辣虾',emoji:'🦐',c1:'#fde4e0',c2:'#f8c4b8',cat:'海鲜',time:'约20分钟',diff:'⭐⭐',desc:'虾壳酥脆虾肉弹牙，香辣入味好吃到连壳都想吃掉！聚会最受欢迎的一道菜。',ingredients:['大虾400g','干辣椒10个','花椒1汤匙','姜蒜末各足量','料酒1汤匙','生抽1汤匙','盐适量','白糖少许','葱花适量','淀粉适量'],steps:['虾剪去虾须虾枪，开背去虾线，加料酒盐腌制10分钟。','虾沥干裹一层薄淀粉。','锅多油，七成热下虾炸至外壳酥脆捞出（约2分钟）。','留底油，小火煸香花椒干辣椒姜蒜末。','倒炸好的虾大火翻炒。','加生抽白糖翻匀，撒葱花出锅。'],tip:'虾开背更入味。裹淀粉炸出来的虾壳更酥脆。干辣椒和花椒的量要足才够香辣。'},
+  {id:30,name:'清蒸鲈鱼',emoji:'🐟',c1:'#e0f0f8',c2:'#c0ddf0',cat:'海鲜',time:'约20分钟',diff:'⭐⭐',desc:'鲜嫩到入口即化！最简单的烹饪保留最鲜的本味，宴客必备的拿手菜。',ingredients:['鲈鱼1条（约500g）','姜1大块','大葱1根','蒸鱼豉油2汤匙','料酒1汤匙','盐少许','红椒丝少许'],steps:['鲈鱼处理干净，鱼身两面各划三刀，抹盐料酒腌制10分钟。','姜一半切片一半切丝，大葱白切段葱绿切丝。','盘底铺姜片葱段，放上鱼，鱼身上再放姜片。','蒸锅水开后放鱼，大火蒸8-10分钟。','蒸好倒掉盘中腥水，拿掉姜片葱段。','铺姜丝葱丝红椒丝，淋蒸鱼豉油，浇滚烫热油激香。'],tip:'一定要水开了再放鱼！蒸8-10分钟严格把控，蒸过了肉就老了。蒸出来的汁水很腥一定倒掉。最后热油是点睛之笔！'},
+  {id:31,name:'水煮鱼',emoji:'🐟',c1:'#fde0e0',c2:'#f0b8b8',cat:'海鲜',time:'约35分钟',diff:'⭐⭐⭐',desc:'热油泼在辣椒上滋啦作响，鱼肉嫩滑麻辣鲜香，家庭聚会必做的硬菜！',ingredients:['草鱼1条（约750g）','豆芽150g','干辣椒15个','花椒2汤匙','郫县豆瓣酱2汤匙','姜蒜末足量','蛋清1个','淀粉2汤匙','料酒1汤匙','盐适量','白胡椒粉适量'],steps:['鱼处理干净片薄片，加料酒盐白胡椒粉蛋清淀粉抓匀腌制20分钟。','豆芽焯水垫碗底。','锅多油，小火炒香豆瓣酱出红油，加一半姜蒜末炒香。','加清水或高汤煮开，加盐胡椒粉调味。','汤沸腾逐片下鱼片不要搅动，变色即熟（约1分钟），连汤倒入碗。','撒剩余姜蒜末干辣椒花椒，另起锅烧热油浇上滋啦一声上桌！'],tip:'鱼片要片薄而均匀。下鱼片时汤要大滚，逐片下锅不要翻动。最后热油一定要烧到冒烟再泼！'},
+  {id:32,name:'酸菜鱼',emoji:'🐟',c1:'#fdf0e0',c2:'#f8dcc0',cat:'海鲜',time:'约35分钟',diff:'⭐⭐⭐',desc:'酸爽开胃的汤汁配上嫩滑的鱼片，冬天来一锅热气腾腾的酸菜鱼太幸福了！',ingredients:['草鱼1条','酸菜250g','泡椒5个','干辣椒适量','花椒适量','姜蒜片各适量','蛋清1个','淀粉2汤匙','料酒1汤匙','盐适量','白胡椒粉适量','白醋少许'],steps:['鱼处理干净片薄片，加料酒盐白胡椒粉蛋清淀粉抓匀腌制20分钟。','酸菜切段，泡椒切碎。','锅少油炒香酸菜和泡椒出酸味盛出。','锅放油爆香姜蒜片，加酸菜翻炒，加足量水煮开熬5分钟出酸味。','汤沸腾逐片下鱼片，变色即熟。','加盐白胡椒粉白醋调味，撒干辣椒花椒，浇热油出锅。'],tip:'酸菜要先炒一下更出味。汤要熬一会儿让酸味充分释放。鱼片下锅后不要搅动。'},
+
+  // ----- 主食 (6道) -----
+  {id:33,name:'蛋炒饭',emoji:'🍚',c1:'#fef8e0',c2:'#f8e8b8',cat:'主食',time:'约10分钟',diff:'⭐',desc:'最简单往往最难做到极致！粒粒分明、蛋香十足的金包银炒饭，深夜食堂的灵魂。',ingredients:['隔夜米饭1大碗','鸡蛋2个','小葱2根','盐适量','白胡椒粉少许'],steps:['隔夜米饭提前捏散。鸡蛋打散，葱切葱花。','锅多油大火烧热，倒蛋液快速划散，刚凝固盛出。','留油，倒米饭大火翻炒，用铲子背部压散饭粒。','炒到饭粒在锅里跳舞蹦起，加炒好的鸡蛋。','加盐白胡椒粉大火翻炒均匀。','撒葱花翻炒几下出锅。'],tip:'米饭一定要隔夜的！新鲜米饭水分大炒不散。全程大火，锅要够热。可加虾仁火腿玉米粒升级。'},
+  {id:34,name:'皮蛋瘦肉粥',emoji:'🥣',c1:'#f5f0e8',c2:'#e8ddd0',cat:'主食',time:'约50分钟',diff:'⭐',desc:'暖心暖胃的一碗粥，皮蛋醇香瘦肉鲜美完美融合，早餐宵夜都合适。',ingredients:['大米100g','皮蛋2个','猪瘦肉100g','姜丝适量','葱花适量','盐适量','白胡椒粉适量','料酒半汤匙','香油几滴'],steps:['大米提前洗净，加少许油和盐拌匀腌15分钟。','瘦肉切丝加料酒盐淀粉腌制。皮蛋切小丁。','锅中加水和大米大火煮开，转中小火熬30-40分钟至米粒开花粥变浓稠。','粥熬好放姜丝和瘦肉丝，用筷子搅散煮至肉变白。','加皮蛋丁搅匀煮2-3分钟。','加盐白胡椒粉调味，滴香油撒葱花出锅。'],tip:'米提前用油盐腌一下更容易煮开花也更香滑。皮蛋不要过早放久煮会变硬。'},
+  {id:35,name:'炒面',emoji:'🍝',c1:'#fef3e0',c2:'#f8e0b8',cat:'主食',time:'约15分钟',diff:'⭐',desc:'酱油的焦香裹着每一根面条，简单配点青菜肉丝，就是最满足的一餐。',ingredients:['面条（拉面/切面）250g','肉丝80g','青菜适量','胡萝卜丝适量','生抽2汤匙','老抽半汤匙','蚝油1汤匙','蒜末适量','盐适量'],steps:['面条煮至八分熟捞出过凉水沥干，拌少许油防粘。','锅多油大火，下肉丝炒至变色。','加蒜末胡萝卜丝翻炒。','放面条大火快炒，用筷子配合铲子抖散。','加生抽老抽蚝油调味上色，大火翻炒均匀。','加青菜翻炒至断生，加盐调味出锅。'],tip:'面条煮八分熟就好，炒的时候还会继续熟。过凉水后拌油防粘。用筷子配合铲子更容易抖散面条。'},
+  {id:36,name:'酸辣粉',emoji:'🍜',c1:'#fde8e0',c2:'#f5c8b0',cat:'主食',time:'约20分钟',diff:'⭐⭐',desc:'酸辣鲜香的红薯粉，配上花生碎榨菜香菜，一碗下肚整个人都暖了！',ingredients:['红薯粉条150g','花生米30g','榨菜适量','香菜适量','葱花适量','蒜末适量','辣椒油2汤匙','陈醋2汤匙','生抽1汤匙','花椒粉半茶匙','盐适量','白糖少许'],steps:['红薯粉提前泡软。花生米炒熟压碎。','调碗底：辣椒油陈醋生抽花椒粉盐白糖蒜末放入碗中。','锅中水开下粉条煮至透明熟透。','碗中舀入滚烫高汤或煮粉水冲开调料。','捞入粉条。','撒花生碎榨菜葱花香菜，淋辣椒油即可。'],tip:'碗底调料要提前准备好。汤一定要滚烫冲下去才能激出香味。醋和辣椒油的比例根据口味调整。'},
+  {id:37,name:'煎饺',emoji:'🥟',c1:'#fef3e0',c2:'#f8e0b8',cat:'主食',time:'约20分钟',diff:'⭐⭐',desc:'底部金黄酥脆、上面晶莹剔透，蘸上醋和辣椒油，一口一个停不下来！',ingredients:['饺子（速冻或现包）20个','食用油适量','水适量','面粉少许（调冰花用）','蘸料：陈醋生抽辣椒油蒜末'],steps:['平底锅放少许油，饺子整齐码放锅中（底部朝下）。','中火煎至底部微黄。','面粉加水调成很稀的面粉水（1:20比例），倒入锅中至饺子1/3高度。','盖上锅盖中小火焖煮至水分收干。','听到滋滋声开盖，继续煎至底部金黄酥脆。','扣上盘子翻转出锅，配蘸料上桌。'],tip:'面粉水比例约1:20，太浓冰花会厚。焖的时候不要开盖，听到滋滋声再开盖。现包的饺子比速冻的更好吃。'},
+  {id:38,name:'韭菜盒子',emoji:'🥟',c1:'#f0f5e8',c2:'#d8e8c0',cat:'主食',time:'约30分钟',diff:'⭐⭐',desc:'外皮金黄酥脆、内馅韭菜鸡蛋粉条鲜香多汁，咬一口满嘴春天的味道！',ingredients:['面粉300g','韭菜200g','鸡蛋3个','粉丝50g','虾皮适量','盐适量','十三香少许','香油1汤匙'],steps:['面粉加温水和成光滑面团醒20分钟。','鸡蛋炒散。韭菜切碎加香油拌匀锁水。粉丝泡软切碎。','韭菜鸡蛋粉丝虾皮放一起，加盐十三香拌匀。','面团分小剂子擀成椭圆面皮。','面皮半边放馅，对折封口压紧花边。','平底锅少油中小火，两面煎至金黄出锅。'],tip:'韭菜先用香油拌可以锁住水分不出汤。封口要压紧不然煎的时候会漏馅。中小火慢煎外皮才酥脆。'},
+
+  // ----- 汤品 (2道) -----
+  {id:39,name:'玉米排骨汤',emoji:'🍲',c1:'#fef8e0',c2:'#f8ecc0',cat:'汤品',time:'约80分钟',diff:'⭐',desc:'清甜滋润的经典汤品，玉米的甜和排骨的鲜完美融合，喝一口暖到心里。',ingredients:['排骨400g','甜玉米2根','胡萝卜1根','姜片5片','料酒1汤匙','盐适量','葱花适量','枸杞少许'],steps:['排骨冷水下锅加姜片料酒焯水，撇浮沫捞出洗净。','玉米切段，胡萝卜切滚刀块。','排骨玉米姜片放入砂锅或汤锅，加足量水。','大火烧开转小火慢炖1小时。','加胡萝卜继续炖15-20分钟。','加盐调味，撒葱花枸杞出锅。'],tip:'炖汤要用冷水下排骨，热水会让蛋白质凝固汤不鲜。小火慢炖才能把排骨的鲜味炖出来。出锅前再放盐。'},
+  {id:40,name:'紫菜蛋花汤',emoji:'🍲',c1:'#f0f8f0',c2:'#d8f0d8',cat:'汤品',time:'约10分钟',diff:'⭐',desc:'最简单的快手汤！紫菜鲜美蛋花嫩滑，五分钟搞定，配什么菜都合适。',ingredients:['紫菜适量','鸡蛋2个','葱花适量','虾皮少许','盐适量','白胡椒粉少许','香油几滴','水淀粉少许'],steps:['紫菜撕碎放碗中，加虾皮葱花备用。','鸡蛋打散。','锅中水烧开，加盐调味。','转小火，沿筷子缓缓倒入蛋液形成蛋花。','淋少许水淀粉让汤稍微浓稠。','将蛋花汤冲入放紫菜的碗中，加白胡椒粉香油即可。'],tip:'蛋液要沿筷子缓缓倒入、火要小，才能形成漂亮的蛋花。紫菜不要煮，直接用热汤冲泡最鲜美。'}
+];
+
+// ==================== STATE ====================
+let cart = JSON.parse(localStorage.getItem('kitchen_cart_v3') || '{}');
+let orders = JSON.parse(localStorage.getItem('kitchen_orders_v3') || '[]');
+let activeCat = 'all';
+let searchTerm = '';
+let orderCounter = orders.length ? Math.max(...orders.map(o=>o.id))+1 : 1;
+
+function saveCart(){ localStorage.setItem('kitchen_cart_v3', JSON.stringify(cart)); }
+function saveOrders(){ localStorage.setItem('kitchen_orders_v3', JSON.stringify(orders)); }
+function getCartCount(){ return Object.values(cart).reduce((a,b)=>a+b,0); }
+
+// ==================== RENDER MENU ====================
+function renderMenu(){
+  const grid = document.getElementById('menuGrid');
+  let list = recipes;
+  if(activeCat !== 'all') list = list.filter(r => r.cat === activeCat);
+  if(searchTerm.trim()){
+    const s = searchTerm.trim().toLowerCase();
+    list = list.filter(r => r.name.includes(s) || r.desc.includes(s) || r.ingredients.some(i=>i.includes(s)));
+  }
+  if(!list.length){
+    grid.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-light);grid-column:1/-1;"><div style="font-size:52px;">😅</div><p>没有找到呢～换个关键词试试？</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(r => {
+    const qty = cart[r.id] || 0;
+    return `
+    <div class="dish-card" onclick="openDetail(${r.id})">
+      <div class="cover" style="background:linear-gradient(135deg,${r.c1},${r.c2})">
+        <span class="emoji">${r.emoji}</span>
+        <span class="card-tag">${r.cat}</span>
+        <span class="card-qty-badge${qty>0?' show':''}">${qty>0?qty:''}</span>
+      </div>
+      <div class="card-info">
+        <div class="name">${r.name}</div>
+        <div class="row2">
+          <span class="meta">⏱${r.time} &nbsp;🔥${r.diff}</span>
+          <div class="qty-ctrl" onclick="event.stopPropagation()">
+            ${qty>0?`<button class="minus" onclick="changeQty(${r.id},-1)">−</button><span class="qty">${qty}</span>`:''}
+            <button class="plus" onclick="changeQty(${r.id},1)">${qty>0?'+':'＋'}</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changeQty(id, delta){
+  const key = String(id);
+  const cur = cart[key] || 0;
+  const next = cur + delta;
+  if(next <= 0){ delete cart[key]; }
+  else { cart[key] = next; }
+  saveCart(); updateCartUI(); renderMenu();
+  if(delta>0 && next===1) showToast('已加入菜单计划 🛒');
+}
+
+// ==================== RENDER CART ====================
+function renderCart(){
+  const container = document.getElementById('cartContent');
+  const entries = Object.entries(cart).filter(([,q])=>q>0);
+  if(!entries.length){
+    container.innerHTML = `<div class="cart-empty"><div class="icon">🛒</div><p>菜单计划还是空的～</p><p style="font-size:0.82em;color:var(--text-light)">去菜单看看想吃什么吧！</p><button class="go-menu" onclick="switchPage('menu')">📋 去选菜</button></div>`;
+    return;
+  }
+  const itemsHtml = entries.map(([id,qty]) => {
+    const r = recipes.find(rr=>rr.id===parseInt(id));
+    if(!r) return '';
+    return `<div class="cart-item">
+      <div class="ci-icon" style="background:linear-gradient(135deg,${r.c1},${r.c2})">${r.emoji}</div>
+      <div class="ci-info"><div class="name">${r.name}</div><div class="meta">⏱${r.time} &nbsp;🔥${r.diff}</div></div>
+      <div class="ci-ctrl">
+        <button class="minus" onclick="changeQtyFromCart(${r.id},-1)">−</button>
+        <span class="qty">${qty}</span>
+        <button class="plus" onclick="changeQtyFromCart(${r.id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  container.innerHTML = `<div class="cart-list">${itemsHtml}</div>
+    <div style="text-align:center;color:var(--text-light);font-size:0.85em;margin-bottom:8px;">共 <strong>${getCartCount()}</strong> 道菜</div>
+    <button class="submit-btn" onclick="openConfirm()">✅ 确认下单</button>`;
+}
+function changeQtyFromCart(id, delta){ changeQty(id, delta); renderCart(); }
+
+// ==================== CONFIRM ORDER ====================
+function openConfirm(){
+  if(getCartCount()===0){ showToast('菜单计划是空的哦～'); return; }
+  const entries = Object.entries(cart).filter(([,q])=>q>0);
+  const itemsHtml = entries.map(([id,qty])=>{
+    const r = recipes.find(rr=>rr.id===parseInt(id));
+    if(!r) return '';
+    return `<div class="cl"><span>${r.emoji} ${r.name}</span><span>x${qty}</span></div>`;
+  }).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <div class="confirm-modal">
+      <div class="handle"></div>
+      <h3>📝 确认菜单计划</h3>
+      <div class="confirm-list">${itemsHtml}</div>
+      <div style="text-align:center;font-weight:700;font-size:1.05em;margin-bottom:4px;">共 <span style="color:var(--rose);">${getCartCount()}</span> 道菜</div>
+      <button class="confirm-btn" onclick="submitOrder()">👨‍🍳 确认下单，开始烹饪！</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function submitOrder(){
+  const entries = Object.entries(cart).filter(([,q])=>q>0);
+  if(!entries.length) return;
+  const items = entries.map(([id,qty])=>{
+    const r = recipes.find(rr=>rr.id===parseInt(id));
+    return {name:r.name, emoji:r.emoji, qty};
+  });
+  const now = new Date();
+  const timeStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  const order = {id:orderCounter++, no:'KM'+String(Date.now()).slice(-8), items, time:timeStr, status:'cooking'};
+  orders.unshift(order); saveOrders();
+  cart={}; saveCart();
+  closeModal(); spawnConfetti();
+  showToast('🎉 下单成功！厨房正在准备中…');
+  const cookTime = 5000+Math.random()*10000;
+  setTimeout(()=>{ order.status='done'; saveOrders(); if(document.getElementById('page-orders').classList.contains('active')) renderOrders(); }, cookTime);
+  updateCartUI(); renderCart(); renderMenu(); switchPage('orders');
+}
+
+// ==================== RENDER ORDERS ====================
+function renderOrders(){
+  const container = document.getElementById('ordersContent');
+  if(!orders.length){
+    container.innerHTML = `<div class="orders-empty"><div class="icon">📦</div><p>还没有下单记录哦</p><p style="font-size:0.82em;color:var(--text-light)">快去选菜下单吧！</p><button class="go-menu" onclick="switchPage('menu')">📋 去选菜</button></div>`;
+    return;
+  }
+  container.innerHTML = orders.map(o=>`
+    <div class="order-card">
+      <div class="oh"><span class="oid">📋 #${o.no}</span><span class="ostatus ${o.status}">${o.status==='cooking'?'👨‍🍳 烹饪中…':'✅ 已完成'}</span></div>
+      <div class="oitems">${o.items.map(i=>`${i.emoji} ${i.name} ×${i.qty}`).join(' &nbsp;|&nbsp; ')}</div>
+      <div class="otime">${o.time}</div>
+    </div>
+  `).join('');
+}
+
+// ==================== DETAIL MODAL ====================
+function openDetail(id){
+  const r = recipes.find(rr=>rr.id===id); if(!r) return;
+  const qty = cart[r.id]||0;
+  document.getElementById('modalContent').innerHTML = `
+    <div style="position:relative;">
+      <div class="modal-hero" style="background:linear-gradient(135deg,${r.c1},${r.c2})">
+        <span style="position:relative;z-index:1;">${r.emoji}</span>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <h2>${r.emoji} ${r.name}</h2>
+        <p class="md">${r.desc}</p>
+        <p class="mm"><span>⏱ ${r.time}</span><span>🔥 ${r.diff}</span><span>📂 ${r.cat}</span></p>
+        <section><h4>🛒 食材清单</h4><div class="ings">${r.ingredients.map(i=>`<span>${i}</span>`).join('')}</div></section>
+        <section><h4>📝 烹饪步骤</h4><ol class="steps">${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol></section>
+        <section><h4>💡 小贴士</h4><div class="tip">${r.tip}</div></section>
+        <div class="qty-row">
+          ${qty>0?`<button class="minus" style="background:#f0f0f0;color:var(--text);" onclick="changeQtyFromModal(${r.id},-1);openDetail(${r.id})">−</button><span class="mqty">${qty}</span>`:''}
+          <button class="add-big" style="flex:1;max-width:260px;" onclick="changeQtyFromModal(${r.id},1);openDetail(${r.id})">${qty>0?`＋ 再来一份（已选 ${qty} 份）`:'🛒 加入菜单计划'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+function changeQtyFromModal(id,delta){ changeQty(id,delta); }
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); renderCart(); renderMenu(); renderOrders(); }
+
+// ==================== PAGE SWITCHING ====================
+function switchPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.bottom-nav button[data-page="'+page+'"]').classList.add('active');
+  if(page==='cart') renderCart();
+  if(page==='orders') renderOrders();
+  if(page==='menu') renderMenu();
+  updateCartFooter();
+}
+
+// ==================== UI UPDATES ====================
+function updateCartUI(){
+  const count = getCartCount();
+  const badge = document.getElementById('cartBadge');
+  if(count>0){ badge.style.display='flex'; badge.textContent=count; }
+  else { badge.style.display='none'; }
+  updateCartFooter();
+}
+function updateCartFooter(){
+  const count = getCartCount();
+  const footer = document.getElementById('cartFooter');
+  document.getElementById('footerCount').textContent = count;
+  if(count>0 && document.getElementById('page-menu').classList.contains('active')){ footer.classList.add('show'); }
+  else { footer.classList.remove('show'); }
+}
+
+// ==================== TOAST ====================
+let toastTimer;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// ==================== CONFETTI ====================
+function spawnConfetti(){
+  const emojis=['🎉','✨','💝','🧧','🎊','❤️','🌟','💕','🍳','🥘','🎀'];
+  for(let i=0;i<30;i++){
+    setTimeout(()=>{
+      const el=document.createElement('span');el.className='confetti';
+      el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      el.style.left=Math.random()*100+'%';
+      el.style.top=-(10+Math.random()*40)+'px';
+      el.style.animationDuration=(1.2+Math.random()*1.6)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),2000);
+    },i*50);
+  }
+}
+
+// ==================== EVENTS ====================
+document.getElementById('searchInput').addEventListener('input',function(){searchTerm=this.value;renderMenu();});
+document.getElementById('catBtns').addEventListener('click',function(e){
+  if(e.target.tagName==='BUTTON'){
+    this.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');activeCat=e.target.dataset.cat;renderMenu();
+  }
+});
+document.getElementById('bottomNav').addEventListener('click',function(e){
+  const btn=e.target.closest('button');if(!btn)return;switchPage(btn.dataset.page);
+});
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+
+// ==================== INIT ====================
+updateCartUI();renderMenu();renderCart();renderOrders();
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扫码点餐 - 小马老婆大人的专属厨房</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
+</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+    background:linear-gradient(135deg,#fff8f0,#fce4ec);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .card{
+    background:#fff;border-radius:24px;padding:30px 24px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.1);
+    text-align:center;max-width:420px;width:100%;
+  }
+  .card h1{font-size:1.5em;color:#e88da8;margin-bottom:6px;}
+  .card .sub{color:#8d6e63;font-size:0.9em;margin-bottom:20px;}
+  .card #qrcode{display:inline-block;margin:0 auto 16px;padding:12px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+  .card #qrcode img,.card #qrcode canvas{display:block;}
+  .card .url{
+    display:inline-block;background:#fce4ec;color:#e88da8;
+    padding:8px 20px;border-radius:50px;font-size:0.85em;
+    word-break:break-all;margin-bottom:14px;font-weight:600;
+  }
+  .card .tips{font-size:0.78em;color:#bcaaa4;line-height:1.8;}
+  .card .tips span{color:#f06292;font-weight:600;}
+  .card .divider{color:#f8a5c2;margin:12px 0;font-size:0.85em;}
+  .card input{
+    width:100%;border:2px solid #fce4ec;border-radius:12px;padding:10px;
+    font-size:1em;text-align:center;color:#5d4037;outline:none;
+    margin-bottom:10px;background:#fafafa;display:none;
+  }
+  .card input:focus{border-color:#f8a5c2;}
+  .card .btn{
+    display:inline-block;background:linear-gradient(135deg,#e88da8,#f06292);
+    color:#fff;border:none;padding:10px 24px;border-radius:50px;
+    font-size:0.9em;font-weight:600;cursor:pointer;margin:4px;
+    box-shadow:0 4px 12px rgba(240,98,146,0.3);transition:all 0.2s;
+    text-decoration:none;
+  }
+  .card .btn:active{transform:scale(0.95);}
+  .card .btn.outline{background:#fff;color:#e88da8;border:2px solid #e88da8;box-shadow:none;}
+  .status{font-size:0.82em;margin-top:10px;padding:8px 16px;border-radius:50px;display:inline-block;}
+  .status.online{background:#e8f5e9;color:#388e3c;}
+  .status.offline{background:#fff3e0;color:#e67e22;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>👩‍🍳💝 扫码点餐</h1>
+  <p class="sub">小马老婆大人的专属厨房</p>
+  <div id="qrcode"></div>
+  <div class="url" id="urlDisplay">加载中…</div>
+  <button class="btn" onclick="copyUrl()">📋 复制链接发送到微信</button>
+  <button class="btn outline" onclick="editUrl()">✏️ 手动修改地址</button>
+  <input type="text" id="urlInput" placeholder="输入网站地址，如 https://xxx.github.io/kitchen">
+  <button class="btn" id="btnUpdate" style="display:none;" onclick="updateUrl()">✅ 更新二维码</button>
+  <div class="divider">❤️ 💛 💚 💙 💜</div>
+  <div class="tips">
+    <span>📱 使用方法：</span><br>
+    ① 二维码<span>永久有效</span>，随时扫码点餐<br>
+    ② 用微信<span>扫一扫</span>二维码即可打开菜单<br>
+    ③ 或把链接<span>发到微信</span>，直接点开<br>
+    ④ <span>不需要</span>同一 WiFi，有网就能用 ✨
+    <div id="tunnelStatus"></div>
+  </div>
+</div>
+
+<script>
+// 自动检测：取当前页面的 origin + 路径，指向 index.html（菜单页）
+var currentUrl = '';
+var menuUrl = '';
+
+function autoDetectUrl(){
+  var origin = window.location.origin;
+  // 如果是真实服务器（非本地文件），自动拼接地址
+  if(origin && origin !== 'null' && !origin.startsWith('file://')){
+    currentUrl = origin;
+    // 从当前路径提取目录：/kitchen/qrcode.html → /kitchen/
+    var path = window.location.pathname;
+    var dir = path.substring(0, path.lastIndexOf('/'));
+    menuUrl = origin + dir + '/index.html';
+  } else {
+    currentUrl = '';
+    menuUrl = '';
+  }
+}
+
+async function detectUrl(){
+  var statusEl = document.getElementById('tunnelStatus');
+
+  autoDetectUrl();
+
+  if(currentUrl){
+    statusEl.innerHTML = '<span class="status online">🟢 已部署到云端，永久有效</span>';
+  } else {
+    statusEl.innerHTML = '<span class="status offline">⚙️ 请输入部署后的网址<br><small>部署后将获得永久链接</small></span>';
+    // 尝试从 hash 读取
+    var hash = window.location.hash.slice(1);
+    if(hash && hash.startsWith('http')){
+      var u = new URL(hash);
+      currentUrl = u.origin;
+      var p = u.pathname;
+      var d = p.substring(0, p.lastIndexOf('/'));
+      menuUrl = u.origin + d + '/index.html';
+    }
+  }
+
+  renderQr();
+}
+
+function renderQr(){
+  document.getElementById('qrcode').innerHTML = '';
+  var qrText = menuUrl || currentUrl || 'https://请先部署';
+  document.getElementById('urlDisplay').textContent = qrText;
+  try{
+    new QRCode(document.getElementById('qrcode'),{
+      text: qrText, width: 220, height: 220,
+      colorDark: '#5d4037', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }catch(e){
+    document.getElementById('qrcode').innerHTML = '<p style="color:#e67e22;">QR库加载中，请刷新页面…</p>';
+  }
+}
+
+function copyUrl(){
+  var url = menuUrl || currentUrl;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){
+      alert('✅ 链接已复制！\n\n' + url + '\n\n发到微信里，点一下就能打开菜单');
+    });
+  }else{
+    prompt('复制这个链接发到微信：', url);
+  }
+}
+
+function editUrl(){
+  document.getElementById('urlInput').style.display = 'block';
+  document.getElementById('btnUpdate').style.display = 'inline-block';
+  document.getElementById('urlInput').value = menuUrl || currentUrl;
+  document.getElementById('urlInput').focus();
+}
+
+function updateUrl(){
+  var val = document.getElementById('urlInput').value.trim();
+  if(val && val.startsWith('http')){
+    var u = new URL(val);
+    currentUrl = u.origin;
+    var p = u.pathname;
+    var d = p.substring(0, p.lastIndexOf('/'));
+    menuUrl = u.origin + d + '/index.html';
+    renderQr();
+    document.getElementById('urlInput').style.display = 'none';
+    document.getElementById('btnUpdate').style.display = 'none';
+  }
+}
+
+detectUrl();
+</script>
+</body>
+</html>
